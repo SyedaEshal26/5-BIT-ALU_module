@@ -10,12 +10,7 @@ module alu_top (
     // Internal signals
     wire [4:0] operand_a;
     wire [4:0] operand_b;
-    wire [4:0] add_result;
-    wire [4:0] sub_result;
-    wire [9:0] mult_result;
-    wire add_carry_out;
-    wire sub_borrow_out;
-    reg [9:0] alu_result;
+    wire [9:0] alu_result;
 
     // Register for operand_a
     register_input reg_a (
@@ -33,21 +28,50 @@ module alu_top (
         .reg_out(operand_b)
     );
 
-    // ALU modules
+    // ALU module
+    alu alu_inst (
+        .operand_a(operand_a),
+        .operand_b(operand_b),
+        .op_sel(op_sel),
+        .alu_result(alu_result)
+    );
+
+    // Register for output
+    register_output reg_out (
+        .clk(clk),
+        .data_in(alu_result), // Consider all 10 bits for output register
+        .enable(enable_out),
+        .reg_out(result)
+    );
+
+endmodule
+
+module alu (
+    input [4:0] operand_a,
+    input [4:0] operand_b,
+    input [1:0] op_sel,
+    output reg [9:0] alu_result
+);
+    // Internal signals
+    wire [4:0] add_result;
+    wire [4:0] sub_result;
+    wire [9:0] mult_result;
+
+    // ALU addition module
     alu_add adder (
         .operand_a(operand_a),
         .operand_b(operand_b),
-        .result(add_result),
-        .carry_out(add_carry_out)
+        .result(add_result)
     );
 
+    // ALU subtraction module
     alu_sub subtractor (
         .operand_a(operand_a),
         .operand_b(operand_b),
-        .result(sub_result),
-        .borrow_out(sub_borrow_out)
+        .result(sub_result)
     );
 
+    // ALU multiplication module
     alu_mult multiplier (
         .operand_a(operand_a),
         .operand_b(operand_b),
@@ -57,22 +81,11 @@ module alu_top (
     // Operation selection logic
     always @(*) begin
         case (op_sel)
-            2'b00: alu_result = {5'b0, add_result}; // Add
-            2'b01: alu_result = {5'b0, sub_result}; // Subtract
-            2'b10: alu_result = mult_result;        // Multiply
-            default: alu_result = 10'b0;            // Default to 0
+            2'b00: alu_result = {5'b0, add_result}; // Add operation, pad with 5 zeros
+            2'b01: alu_result = {5'b0, sub_result}; // Subtract operation, pad with 5 zeros
+            2'b10: alu_result = mult_result;        // Multiply operation
+            default: alu_result = 10'b0;            // Default to 0 for undefined operations
         endcase
     end
-
-    // Register for output
-    register_output reg_out (
-        .clk(clk),
-        .data_in(alu_result[4:0]), // Only consider the lower 5 bits for output register
-        .enable(enable_out),
-        .reg_out(result[4:0])
-    );
-
-    // Assign the remaining bits of result directly
-    assign result[9:5] = alu_result[9:5];
-
 endmodule
+
