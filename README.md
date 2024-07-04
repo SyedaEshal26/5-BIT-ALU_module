@@ -79,77 +79,26 @@ If the bit is set (_`1`_), the module adds operand_a shifted left by i positions
 
 ### **4. alu_top.v**
 
-## 5. **TEST_BENCH**
----
-ALU TOP MODEL TEST BENCH 
-```
-module tb_alu_top;
-    // Testbench signals
-    reg clk;
-    reg load_a;
-    reg load_b;
-    reg [4:0] data_in;
-    reg [1:0] op_sel;
-    reg enable_out;
-    wire [9:0] result;
+**This code implements a top-level module for a 5-bit Arithmetic Logic Unit (ALU) with register support.**
 
-    // VCD file declaration
-    initial begin
-        $dumpfile("tb_alu_top.vcd"); // Name your VCD file here
-        $dumpvars(0, tb_alu_top);   // Dump all signals starting at time 0
-    end
+* The module _`alu_top`_ provides a user interface for the ALU functionality.
+* It takes various control signals:
+    * _`clk`_: Clock signal for register updates.
+    * _`load_a`_ and _`load_b`_: Load signals for operand registers (_`reg_a`_ and _`reg_b`_).
+    * _`data_in`_: Common data input for both operands.
+    * _`op_sel`_: Operation selection signal (_`00`_ for addition, _`01`_ for subtraction, _`10`_ for multiplication).
+    * _`enable_out`_: Enable signal for the output register.
+    
+* It outputs the final result (_`result`_) on a 10-bit bus.
 
-    // Instantiate the ALU top module
-    alu_top uut (
-        .clk(clk),
-        .load_a(load_a),
-        .load_b(load_b),
-        .data_in(data_in),
-        .op_sel(op_sel),
-        .enable_out(enable_out),
-        .result(result)
-    );
+Internally, the module utilizes:
 
-    // Clock generation
-    always #5 clk = ~clk; // 100 MHz clock
+* Registers (_`reg_a`_ and _`reg_b`_) to store operands (_`operand_a`_ and _`operand_b`_).
+* Separate ALU modules (_`adder`_, _`subtractor`_, _`multiplier`_) for performing addition, subtraction, and multiplication, respectively.
+* An operation selection logic that chooses the appropriate ALU output based on _`op_sel`_.
+* An output register to hold the final result before it's driven to the output bus.
 
-    // Test sequence
-    initial begin
-        // Initialize inputs
-        clk = 0;
-        load_a = 0;
-        load_b = 0;
-        data_in = 5'b0;
-        op_sel = 2'b0;
-        enable_out = 0;
-
-        // Apply test vectors
-        // Test Addition
-        #10 data_in = 5'b00101; load_a = 1; #10 load_a = 0; // Load operand_a = 5
-        #10 data_in = 5'b00011; load_b = 1; #10 load_b = 0; // Load operand_b = 3
-        #10 op_sel = 2'b00; enable_out = 1; #10 enable_out = 0; // Perform addition: 5 + 3
-
-        // Test Subtraction
-        #10 data_in = 5'b01010; load_a = 1; #10 load_a = 0; // Load operand_a = 10
-        #10 data_in = 5'b00100; load_b = 1; #10 load_b = 0; // Load operand_b = 4
-        #10 op_sel = 2'b01; enable_out = 1; #10 enable_out = 0; // Perform subtraction: 10 - 4
-
-        // Test Multiplication
-        #10 data_in = 5'b00011; load_a = 1; #10 load_a = 0; // Load operand_a = 3
-        #10 data_in = 5'b00010; load_b = 1; #10 load_b = 0; // Load operand_b = 2
-        #10 op_sel = 2'b10; enable_out = 1; #10 enable_out = 0; // Perform multiplication: 3 * 2
-
-        // Finish simulation
-        #20 $finish;
-    end
-
-    // Monitor results
-    initial begin
-        $monitor("Time = %0t, clk = %b, load_a = %b, load_b = %b, data_in = %b, op_sel = %b, enable_out = %b, result = %b",
-                 $time, clk, load_a, load_b, data_in, op_sel, enable_out, result);
-    end
-endmodule
-```
+This description highlights the overall functionality, user interface, and internal components of the top-level ALU module.
 
 ## 6. ** GETTING STARTED**
 ---
